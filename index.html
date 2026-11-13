@@ -1,1 +1,450 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#6B1E2E" />
+  <meta name="description" content="Pinggang Pinoy sa Tindahan — Offline-first, budget-aware sari-sari store meal builder para sa pamilyang Pilipino." />
+  <title>Pinggang Pinoy sa Tindahan</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
 
+  <!-- Sticky Top Header & Step Navigation -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand" role="banner">
+        <span class="brand-icon" aria-hidden="true">🍽️</span>
+        <div class="brand-text">
+          <h1 class="brand-title">Pinggang Pinoy <span class="brand-sub">sa Tindahan</span></h1>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button type="button" id="bata-mode-btn" class="btn-chip-toggle" aria-pressed="false" title="Paliitin ang mga salita at palakihin ang teksto">
+          <span aria-hidden="true">🧒</span>
+          <span class="bata-label">Bata Mode: OFF</span>
+        </button>
+        <button type="button" id="reset-btn" class="btn-ghost btn-sm" aria-label="I-reset ang lahat">
+          <span aria-hidden="true">↺</span>
+          <span data-i18n="resetBtn">Ulitin</span>
+        </button>
+      </div>
+    </div>
+
+    <nav class="step-nav" aria-label="Mga Hakbang">
+      <button type="button" class="tab active" data-step="welcome" aria-current="page">
+        <span class="tab-num">1</span>
+        <span class="tab-text" data-i18n="tab1">Simula</span>
+      </button>
+      <button type="button" class="tab" data-step="setup">
+        <span class="tab-num">2</span>
+        <span class="tab-text" data-i18n="tab2">Badyet</span>
+      </button>
+      <button type="button" class="tab" data-step="tindahan">
+        <span class="tab-num">3</span>
+        <span class="tab-text" data-i18n="tab3">Tindahan</span>
+      </button>
+      <button type="button" class="tab" data-step="plate">
+        <span class="tab-num">4</span>
+        <span class="tab-text" data-i18n="tab4">Pinggan</span>
+      </button>
+      <button type="button" class="tab" data-step="resibo">
+        <span class="tab-num">5</span>
+        <span class="tab-text" data-i18n="tab5">Resibo</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Persistent Live Budget & Busog Strip (visible on steps 2-4) -->
+  <section id="live-status-bar" class="live-status-bar hidden" aria-label="Live na Badyet at Busog Meter">
+    <div class="status-inner">
+      <div class="budget-meter-box">
+        <div class="meter-header">
+          <span class="meter-label" data-i18n="budgetMeterLabel">Natitirang Badyet:</span>
+          <span class="meter-values tabular" aria-live="polite">
+            <strong id="live-spent">₱0</strong> / <span id="live-budget">₱150</span>
+          </span>
+        </div>
+        <div class="budget-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="budget-track">
+          <div class="budget-fill" id="budget-fill" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <div class="busog-meter-box" aria-live="polite">
+        <span class="busog-icon" aria-hidden="true">🍚</span>
+        <div>
+          <div class="busog-title" data-i18n="busogLabel">Busog Meter</div>
+          <div class="busog-value tabular" id="live-busog">0 / 5 tao</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="main-container">
+    <!-- SCREEN 1: WELCOME / MASCOT INTRO -->
+    <section id="view-welcome" class="view active" aria-labelledby="welcome-heading">
+      <div class="card hero-card">
+        <div class="mascot-stage" id="welcome-mascot-slot">
+          <!-- Ping SVG Mascot injected here -->
+        </div>
+
+        <div class="speech-bubble">
+          <h2 id="welcome-heading" data-i18n="welcomeTitle">Kumusta! Ako si Kuya Ping! 👋</h2>
+          <p class="lead-text" data-i18n="welcomeBody">
+            Tutulungan kitang pumili ng masustansya at abot-kayang ulam at kanin mula sa tindahan — sakto sa badyet at kalusugan ng pamilya!
+          </p>
+        </div>
+
+        <div class="legend-pills" aria-label="Tatlong Bahagi ng Pinggang Pinoy">
+          <span class="legend-pill pill-go">🍚 ¼ Go (Lakas)</span>
+          <span class="legend-pill pill-grow">🐟 ¼ Grow (Tangkad at Lakas)</span>
+          <span class="legend-pill pill-glow">🥬 ½ Glow (Sigla at Iwas-Sakit)</span>
+        </div>
+
+        <button type="button" id="start-btn" class="btn-primary btn-xl">
+          <span data-i18n="startBtn">Simulan</span>
+          <span aria-hidden="true">➔</span>
+        </button>
+
+        <!-- Trophy Shelf Preview -->
+        <div class="trophy-shelf-card">
+          <h3 class="shelf-title">🏆 <span data-i18n="trophyTitle">Mga Badge Mo</span></h3>
+          <div class="badges-grid" id="welcome-badges"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: SETUP -->
+    <section id="view-setup" class="view" aria-labelledby="setup-heading">
+      <div class="card setup-card">
+        <h2 id="setup-heading" data-i18n="setupTitle">Ihanda Natin ang Plano</h2>
+        <p class="sub-text" data-i18n="setupSub">Ilagay ang badyet at kung sino-sino ang kakain ngayon.</p>
+
+        <!-- Budget Input -->
+        <div class="form-group">
+          <label for="budget-number" class="form-label">
+            <span aria-hidden="true">💰</span>
+            <span data-i18n="budgetLabel">Magkano ang badyet sa tindahan? (₱)</span>
+          </label>
+          <div class="budget-input-row">
+            <input type="range" id="budget-slider" min="30" max="1000" step="5" value="150" aria-label="Slider ng Badyet" />
+            <div class="peso-input-wrap">
+              <span class="peso-sign" aria-hidden="true">₱</span>
+              <input type="number" id="budget-number" min="10" max="5000" step="5" value="150" class="tabular" />
+            </div>
+          </div>
+          <div class="quick-presets" role="group" aria-label="Mabilisang Pili ng Badyet">
+            <button type="button" class="chip preset-chip" data-budget="80">₱80</button>
+            <button type="button" class="chip preset-chip" data-budget="150">₱150</button>
+            <button type="button" class="chip preset-chip" data-budget="250">₱250</button>
+            <button type="button" class="chip preset-chip" data-budget="400">₱400</button>
+          </div>
+        </div>
+
+        <!-- Number of People Stepper -->
+        <div class="form-group">
+          <label id="people-label" class="form-label">
+            <span aria-hidden="true">👨‍👩‍👧‍👦</span>
+            <span data-i18n="peopleLabel">Ilang tao ang kakain?</span>
+          </label>
+          <div class="stepper" role="group" aria-labelledby="people-label">
+            <button type="button" id="people-minus" class="btn-stepper" aria-label="Bawasan ang bilang ng tao">−</button>
+            <div class="stepper-display tabular">
+              <strong id="people-count">5</strong>
+              <span data-i18n="peopleUnit">katao</span>
+              <small id="per-person-hint" class="per-person-hint">(₱30.00 bawat isa)</small>
+            </div>
+            <button type="button" id="people-plus" class="btn-stepper" aria-label="Dagdagan ang bilang ng tao">+</button>
+          </div>
+        </div>
+
+        <!-- Meal Type -->
+        <div class="form-group">
+          <span id="meal-label" class="form-label">
+            <span aria-hidden="true">⏰</span>
+            <span data-i18n="mealLabel">Anong kainan ito?</span>
+          </span>
+          <div class="chip-group" role="radiogroup" aria-labelledby="meal-label" id="meal-chips">
+            <button type="button" class="chip selected" data-meal="Almusal" role="radio" aria-checked="true">🌅 Almusal</button>
+            <button type="button" class="chip" data-meal="Tanghalian" role="radio" aria-checked="false">☀️ Tanghalian</button>
+            <button type="button" class="chip" data-meal="Hapunan" role="radio" aria-checked="false">🌙 Hapunan</button>
+            <button type="button" class="chip" data-meal="Merienda" role="radio" aria-checked="false">🍌 Merienda</button>
+          </div>
+        </div>
+
+        <!-- Health Conditions -->
+        <div class="form-group">
+          <span id="condition-label" class="form-label">
+            <span aria-hidden="true">❤️</span>
+            <span data-i18n="conditionLabel">May binabantayan bang kondisyon sa pamilya?</span>
+          </span>
+          <div class="chip-group" role="group" aria-labelledby="condition-label" id="condition-chips">
+            <button type="button" class="chip selected" data-cond="none" aria-pressed="true">✅ Wala</button>
+            <button type="button" class="chip" data-cond="hypertension" aria-pressed="false">🧂 Altapresyon (Hypertension)</button>
+            <button type="button" class="chip" data-cond="diabetes" aria-pressed="false">🍬 Diabetes (Asukal)</button>
+            <button type="button" class="chip" data-cond="both" aria-pressed="false">🩺 Pareho (Altapresyon at Diabetes)</button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="to-tindahan-btn" class="btn-primary btn-lg">
+            <span data-i18n="goStoreBtn">Pumunta sa Tindahan</span>
+            <span aria-hidden="true">🏪</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: TINDAHAN (STORE) -->
+    <section id="view-tindahan" class="view" aria-labelledby="tindahan-heading">
+      <div class="tindahan-layout">
+        <div class="store-column">
+          <div class="store-header-card">
+            <div class="store-title-row">
+              <div>
+                <h2 id="tindahan-heading" data-i18n="storeTitle">Mga Paninda sa Tindahan</h2>
+                <p class="sub-text" data-i18n="storeSub">Pindutin ang pagkain para ilagay sa iyong bayong.</p>
+              </div>
+              <button type="button" id="auto-suggest-btn" class="btn-ghost" title="Awtomatikong pumili ng balanseng pagkain pasok sa badyet">
+                <span aria-hidden="true">✨</span>
+                <span data-i18n="autoSuggestBtn">Tulungan Akong Pumili</span>
+              </button>
+            </div>
+
+            <!-- Category Tabs -->
+            <div class="category-tabs" role="tablist" aria-label="Kategorya ng Pagkain">
+              <button type="button" class="cat-tab active" data-cat="all" role="tab" aria-selected="true">🛒 Lahat</button>
+              <button type="button" class="cat-tab" data-cat="go" role="tab" aria-selected="false">🍚 Go (Lakas)</button>
+              <button type="button" class="cat-tab" data-cat="grow" role="tab" aria-selected="false">🐟 Grow (Protina)</button>
+              <button type="button" class="cat-tab" data-cat="glow" role="tab" aria-selected="false">🥬 Glow (Gulay/Prutas)</button>
+              <button type="button" class="cat-tab" data-cat="drink" role="tab" aria-selected="false">💧 Inumin</button>
+              <button type="button" class="cat-tab" data-cat="snack" role="tab" aria-selected="false">🍪 Miryenda</button>
+            </div>
+          </div>
+
+          <!-- Food Cards Grid -->
+          <div class="food-grid" id="food-grid" role="region" aria-label="Listahan ng Pagkain"></div>
+        </div>
+
+        <!-- Live Basket Sidebar -->
+        <aside class="basket-sidebar" aria-labelledby="basket-heading">
+          <div class="card basket-card">
+            <div class="basket-header">
+              <h3 id="basket-heading">
+                <span id="basket-icon" class="basket-icon" aria-hidden="true">🧺</span>
+                <span data-i18n="basketTitle">Iyong Bayong</span>
+              </h3>
+              <span class="basket-count-pill tabular" id="basket-item-count">0 item</span>
+            </div>
+
+            <!-- Mini Plate Preview inside Sidebar -->
+            <div class="mini-plate-status" id="mini-plate-status">
+              <span class="mini-dot" id="dot-go">🍚 Go</span>
+              <span class="mini-dot" id="dot-grow">🐟 Grow</span>
+              <span class="mini-dot" id="dot-glow">🥬 Glow</span>
+            </div>
+
+            <ul class="basket-list" id="basket-list" aria-label="Mga napiling pagkain">
+              <li class="empty-basket-msg" data-i18n="emptyBasket">Wala pang laman ang bayong. Pumili sa kaliwa!</li>
+            </ul>
+
+            <div class="basket-footer">
+              <div class="basket-total-row">
+                <span data-i18n="totalLabel">Kabuuan:</span>
+                <strong class="tabular" id="basket-total" aria-live="polite">₱0.00</strong>
+              </div>
+              <button type="button" id="to-plate-btn" class="btn-primary btn-block">
+                <span data-i18n="checkPlateBtn">Tingnan ang Pinggan</span>
+                <span aria-hidden="true">🍽️</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: PINGGANG PINOY PLATE -->
+    <section id="view-plate" class="view" aria-labelledby="plate-heading">
+      <div class="plate-layout">
+        <!-- Left: Visual Plate & Mascot Reaction -->
+        <div class="card plate-visual-card">
+          <div class="plate-top-row">
+            <h2 id="plate-heading" data-i18n="plateTitle">Ang Iyong Pinggang Pinoy</h2>
+            <div id="plate-mascot-slot" class="mini-mascot-slot"></div>
+          </div>
+
+          <p class="mascot-comment" id="plate-mascot-comment" aria-live="polite">
+            Suriin natin kung balanse ang Go, Grow, at Glow sa iyong pinggan!
+          </p>
+
+          <!-- Interactive SVG Pinggang Pinoy Plate -->
+          <div class="svg-plate-wrapper">
+            <svg viewBox="0 0 320 320" class="pinggang-svg" role="img" aria-label="Pinggang Pinoy diagram na may Go, Grow, at Glow">
+              <!-- Outer Plate Rim -->
+              <circle cx="160" cy="160" r="150" fill="#FFFBF5" stroke="#6B1E2E" stroke-width="6" />
+              <circle cx="160" cy="160" r="134" fill="#FBF2F4" stroke="#E8B84B" stroke-width="2" stroke-dasharray="6 4" />
+
+              <!-- GLOW: Right Half (1/2 of plate: -90deg to +90deg) -->
+              <path id="seg-glow" class="plate-segment"
+                d="M 160 160 L 160 30 A 130 130 0 0 1 160 290 Z"
+                fill="#E6ECE2" stroke="#FFFBF5" stroke-width="4" />
+
+              <!-- GO: Top-Left Quarter (1/4 of plate: 180deg to 270deg) -->
+              <path id="seg-go" class="plate-segment"
+                d="M 160 160 L 30 160 A 130 130 0 0 1 160 30 Z"
+                fill="#F5EEDB" stroke="#FFFBF5" stroke-width="4" />
+
+              <!-- GROW: Bottom-Left Quarter (1/4 of plate: 90deg to 180deg) -->
+              <path id="seg-grow" class="plate-segment"
+                d="M 160 160 L 160 290 A 130 130 0 0 1 30 160 Z"
+                fill="#F5E4E8" stroke="#FFFBF5" stroke-width="4" />
+
+              <!-- Segment Labels -->
+              <g class="plate-labels" pointer-events="none">
+                <text x="102" y="102" text-anchor="middle" font-size="26">🍚</text>
+                <text x="102" y="124" text-anchor="middle" font-size="13" font-weight="700" fill="#23161A">GO (¼)</text>
+                <text id="svg-go-count" x="102" y="140" text-anchor="middle" font-size="11" fill="#6B5A5F">0 item</text>
+
+                <text x="102" y="205" text-anchor="middle" font-size="26">🐟</text>
+                <text x="102" y="227" text-anchor="middle" font-size="13" font-weight="700" fill="#23161A">GROW (¼)</text>
+                <text id="svg-grow-count" x="102" y="243" text-anchor="middle" font-size="11" fill="#6B5A5F">0 item</text>
+
+                <text x="225" y="152" text-anchor="middle" font-size="30">🥬</text>
+                <text x="225" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#23161A">GLOW (½)</text>
+                <text id="svg-glow-count" x="225" y="194" text-anchor="middle" font-size="11" fill="#6B5A5F">0 item</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Group Breakdown Lists -->
+          <div class="group-breakdown-grid" id="plate-group-lists"></div>
+        </div>
+
+        <!-- Right: Balance Score Gauge, Hints & Swaps -->
+        <div class="plate-analysis-column">
+          <!-- Balance Score Gauge Card -->
+          <div class="card score-card">
+            <h3 data-i18n="scoreTitle">Marka ng Balanse</h3>
+            <div class="gauge-wrap">
+              <svg viewBox="0 0 140 140" class="score-svg" role="img" aria-label="Marka mula 0 hanggang 100">
+                <circle cx="70" cy="70" r="56" fill="none" stroke="#F5E4E8" stroke-width="14" />
+                <circle id="score-ring" cx="70" cy="70" r="56" fill="none" stroke="#6B1E2E" stroke-width="14"
+                  stroke-linecap="round" stroke-dasharray="351.86" stroke-dashoffset="351.86"
+                  transform="rotate(-90 70 70)" />
+              </svg>
+              <div class="gauge-center" aria-live="polite">
+                <strong id="score-number" class="tabular">0</strong>
+                <span>/ 100</span>
+              </div>
+            </div>
+            <p id="score-verdict" class="score-verdict">Magdagdag ng pagkain sa bayong.</p>
+          </div>
+
+          <!-- Gentle Hints & Condition Swaps -->
+          <div class="card feedback-card">
+            <h3 data-i18n="tipsTitle">Payo ni Kuya Ping</h3>
+            <div id="hints-container" class="hints-list"></div>
+            <div id="swaps-container" class="swaps-list"></div>
+          </div>
+
+          <div class="plate-actions">
+            <button type="button" id="back-to-store-btn" class="btn-ghost">
+              <span aria-hidden="true">←</span>
+              <span data-i18n="addMoreBtn">Magdagdag Pa</span>
+            </button>
+            <button type="button" id="to-resibo-btn" class="btn-primary btn-lg">
+              <span data-i18n="viewReceiptBtn">Kunin ang Resibo</span>
+              <span aria-hidden="true">🧾</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 5: RESULT / RESIBO -->
+    <section id="view-resibo" class="view" aria-labelledby="resibo-heading">
+      <div class="resibo-wrapper">
+        <article class="card resibo-paper" id="printable-resibo">
+          <div class="resibo-header">
+            <div class="resibo-logo">🍽️ PINGGANG PINOY SA TINDAHAN</div>
+            <h2 id="resibo-heading" data-i18n="receiptTitle">Listahan sa Tindahan (Resibo)</h2>
+            <p class="resibo-meta" id="resibo-meta">Tanghalian • 5 Katao • Kondisyon: Wala</p>
+          </div>
+
+          <div class="resibo-stats-row">
+            <div class="resibo-stat">
+              <span data-i18n="resTotalLabel">Kabuuang Gastos</span>
+              <strong id="res-total" class="tabular">₱0.00</strong>
+            </div>
+            <div class="resibo-stat">
+              <span data-i18n="resPerPersonLabel">Bawat Tao</span>
+              <strong id="res-per-person" class="tabular">₱0.00</strong>
+            </div>
+            <div class="resibo-stat">
+              <span data-i18n="resScoreLabel">Marka</span>
+              <strong id="res-score" class="tabular">0 / 100</strong>
+            </div>
+          </div>
+
+          <div class="resibo-divider" aria-hidden="true"></div>
+
+          <h3 class="resibo-sec-title" data-i18n="resListHeading">Mga Bibilhin sa Tindahan</h3>
+          <table class="resibo-table">
+            <thead>
+              <tr>
+                <th scope="col">Pagkain</th>
+                <th scope="col">Grupo</th>
+                <th scope="col" class="num-col">Dami</th>
+                <th scope="col" class="num-col">Presyo</th>
+              </tr>
+            </thead>
+            <tbody id="resibo-tbody"></tbody>
+          </table>
+
+          <div class="resibo-divider" aria-hidden="true"></div>
+
+          <div class="resibo-badges-section">
+            <h3 class="resibo-sec-title">🏆 <span data-i18n="resBadgesHeading">Nakamit na mga Badge</span></h3>
+            <div class="badges-grid" id="resibo-badges"></div>
+          </div>
+
+          <p class="resibo-footer-note">
+            Paalala: Gabay ito batay sa Pinggang Pinoy ng DOST-FNRI. Kumonsulta sa Barangay Health Worker para sa espesyal na diyeta.
+          </p>
+        </article>
+
+        <div class="resibo-actions no-print">
+          <button type="button" id="print-btn" class="btn-primary">
+            <span aria-hidden="true">🖨️</span>
+            <span data-i18n="printBtn">I-print</span>
+          </button>
+          <button type="button" id="download-txt-btn" class="btn-ghost">
+            <span aria-hidden="true">📄</span>
+            <span>I-save (.TXT)</span>
+          </button>
+          <button type="button" id="download-csv-btn" class="btn-ghost">
+            <span aria-hidden="true">📊</span>
+            <span>I-save (.CSV)</span>
+          </button>
+          <button type="button" id="new-plan-btn" class="btn-primary">
+            <span aria-hidden="true">✨</span>
+            <span data-i18n="newPlanBtn">Bagong Plano</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer no-print">
+    <p>Pinggang Pinoy sa Tindahan • Offline-First Capstone System • Gawa para sa Pamilyang Pilipino 🇵🇭</p>
+  </footer>
+
+  <!-- Offline-safe script loading (works via file:// and HTTP) -->
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
