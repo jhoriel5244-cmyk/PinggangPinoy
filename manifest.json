@@ -1,1 +1,24 @@
-
+{
+  "name": "Pinggang Pinoy sa Tindahan",
+  "short_name": "Pinggang Pinoy",
+  "description": "Offline-first, kid-friendly, budget-aware sari-sari store meal builder para sa pamilyang Pilipino.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FBF2F4",
+  "theme_color": "#6B1E2E",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%236B1E2E'/%3E%3Ccircle cx='96' cy='96' r='64' fill='%23FFFBF5' stroke='%23E8B84B' stroke-width='8'/%3E%3Ccircle cx='78' cy='88' r='8' fill='%233D0F1A'/%3E%3Ccircle cx='114' cy='88' r='8' fill='%233D0F1A'/%3E%3Cpath d='M74 112 Q96 132 118 112' fill='none' stroke='%233D0F1A' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%236B1E2E'/%3E%3Ccircle cx='256' cy='256' r='170' fill='%23FFFBF5' stroke='%23E8B84B' stroke-width='20'/%3E%3Ccircle cx='208' cy='234' r='20' fill='%233D0F1A'/%3E%3Ccircle cx='304' cy='234' r='20' fill='%233D0F1A'/%3E%3Cpath d='M198 298 Q256 350 314 298' fill='none' stroke='%233D0F1A' stroke-width='18' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
